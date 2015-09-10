@@ -390,5 +390,20 @@ unless ENV["CI"]
         wait_for_recovery
       end
     end
+
+    it "recovers queue with no_declare" do
+      with_open do |c|
+        ch = c.create_channel
+        ch.queue("pre", :durable => true)
+        q = ch.queue("pre", :durable => false, :no_declare => true)
+        close_all_connections!
+        sleep 0.1
+        expect(c).not_to be_open
+
+        wait_for_recovery
+        expect(ch).to be_open
+        ensure_queue_recovery(ch, q)
+      end
+    end
   end
 end
